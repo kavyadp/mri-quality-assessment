@@ -6,9 +6,9 @@ artefacts in brain MRI, and does it beat classical image-quality metrics?**
 Motion, noise and blur can make a brain MRI scan unusable. Catching a bad scan
 while the patient is still in the scanner saves a recall visit, and it stops
 corrupted images from misleading radiologists or downstream AI models. This
-project simulates artefacts on clean scans (IXI, 578 subjects, 3 scanners),
+project simulates artefacts on clean scans ([IXI](https://brain-development.org/ixi-dataset/), 578 subjects, 3 scanners),
 trains a classical baseline and a multi-task CNN, then tests both on **real
-patient motion** (MR-ART, 148 people, 436 scans scored by a neuroradiologist)
+patient motion** ([MR-ART](https://openneuro.org/datasets/ds004173), 148 people, 436 scans scored by a neuroradiologist)
 without any retraining.
 
 ## Summary
@@ -441,7 +441,22 @@ docs/figures, docs/results    figures and result tables shown here (python scrip
 
 ## Data
 
-IXI dataset, https://brain-development.org/ixi-dataset/ (CC BY-SA 3.0).
-MR-ART, OpenNeuro ds004173 (CC0): Nárai Á. et al. *Movement-related artefacts (MR-ART) dataset of matched
-motion-corrupted and clean structural MRI brain scans.* Sci Data 9, 630 (2022).
-Data files are not committed to this repository.
+The datasets are **not included** in this repository (about 9 GB of scans). Both are
+public and can be downloaded with the scripts in `scripts/`, or directly:
+
+| Dataset | Used for | Link | Licence |
+|---|---|---|---|
+| **IXI** (T1-weighted, 581 subjects, 3 London hospitals) | Training and simulated-artefact tests | [brain-development.org/ixi-dataset](https://brain-development.org/ixi-dataset/) | CC BY-SA 3.0 |
+| **MR-ART** (148 adults, still and moving scans, radiologist scores) | Real-motion test | [openneuro.org/datasets/ds004173](https://openneuro.org/datasets/ds004173) | CC0 |
+
+```bash
+python scripts/download_ixi.py      # IXI T1 + demographics into data/raw/
+python scripts/download_mrart.py    # MR-ART T1 + scores + MRIQC table into data/raw/MR-ART/
+```
+
+MR-ART citation: Nárai Á. et al. *Movement-related artefacts (MR-ART) dataset of
+matched motion-corrupted and clean structural MRI brain scans.* Sci Data 9, 630 (2022).
+[doi:10.1038/s41597-022-01694-8](https://doi.org/10.1038/s41597-022-01694-8)
+
+Figures in `docs/figures/` that show IXI images are adapted from the IXI dataset
+and shared under the same licence, CC BY-SA 3.0.
