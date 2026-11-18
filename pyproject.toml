@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mriqa"
+version = "0.1.0"
+description = "Automated MRI image quality assessment: artefact detection and severity grading on brain MRI."
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "nibabel",
+    "scipy",
+    "scikit-image",
+    "pandas",
+    "xlrd",
+    "matplotlib",
+    "tqdm",
+    "scikit-learn",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+# CNN stage. Install the CUDA build from the PyTorch index, e.g.
+#   pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu118
+dl = ["torch", "torchvision"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

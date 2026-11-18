@@ -1,0 +1,17 @@
+,auroc_any_artefact,auroc_unusable,spearman_vs_score,within_subject_pair_agreement,bal_acc_default_threshold,specificity_default_threshold,sensitivity_default_threshold,bal_acc_calibrated_3_still_scans,bal_acc_calibrated_10_still_scans,motion_typed_as_motion,still_typed_as_motion
+CNN / p_degraded,0.886,0.941,0.78,0.974,0.529,1.0,0.059,0.746,0.791,0.0,0.0
+CNN / sev_pred,0.876,0.929,0.759,0.974,,,,,,0.0,0.0
+CNN / p_motion,0.742,0.821,0.538,0.863,,,,,,0.0,0.0
+classical RF / p_degraded,0.885,0.942,0.78,0.949,0.591,1.0,0.182,0.748,0.796,0.0,0.0
+classical RF / sev_pred,0.872,0.933,0.76,0.962,,,,,,0.0,0.0
+classical RF / p_motion,0.857,0.828,0.631,0.882,,,,,,0.0,0.0
+MRIQC / cjv,0.906,0.925,0.777,0.978,,,,,,,
+MRIQC / cnr,0.891,0.926,0.766,0.981,,,,,,,
+MRIQC / efc,0.726,0.778,0.478,0.984,,,,,,,
+MRIQC / fber,0.898,0.926,0.772,0.949,,,,,,,
+MRIQC / snr_total,0.918,0.948,0.811,0.987,,,,,,,
+MRIQC / qi_1,0.704,0.707,0.419,0.534,,,,,,,
+MRIQC / qi_2,0.708,0.788,0.477,0.767,,,,,,,
+MRIQC / wm2max,0.586,0.561,0.131,0.661,,,,,,,
+MRIQC / fwhm_avg,0.543,0.565,0.105,0.591,,,,,,,
+MRIQC / inu_range,0.727,0.736,0.432,0.805,,,,,,,

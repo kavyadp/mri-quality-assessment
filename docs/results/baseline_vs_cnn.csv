@@ -1,0 +1,5 @@
+setting,model,quality_auroc,quality_bal_acc,quality_specificity,quality_sensitivity,type_macro_f1,severity_mae,severity_spearman
+seen scanners (test),classical RF,0.9953,0.9638,0.9636,0.964,0.9618,0.0143,0.962
+seen scanners (test),CNN,0.999,0.9821,0.9859,0.9783,0.9992,0.0069,0.9878
+unseen scanner (IOP),classical RF,0.9268,0.7827,0.5841,0.9812,0.6382,0.0755,0.7898
+unseen scanner (IOP),CNN,0.9864,0.7323,0.4663,0.9982,0.8697,0.0696,0.8864

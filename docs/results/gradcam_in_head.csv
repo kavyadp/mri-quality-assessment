@@ -1,0 +1,9 @@
+,,cam_in_head,cam_in_head,head_area,head_area
+,,mean,std,mean,std
+dataset,group,,,,
+IXI test,clean,0.025,0.136,0.415,0.08
+IXI test,noise,0.496,0.177,0.425,0.073
+IXI test,blur,0.594,0.106,0.416,0.08
+IXI test,motion,0.547,0.109,0.415,0.08
+MR-ART,"still, score 1",0.296,0.458,0.398,0.078
+MR-ART,"real motion, score 3",0.4,0.375,0.407,0.077
