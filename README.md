@@ -54,29 +54,18 @@ without any retraining.
 | **Subject-level** splits, stratified by site | Slices from one brain never appear in two splits (no leakage) |
 | Real-artefact test set (MR-ART) | Measures the gap between synthetic training and real artefacts |
 
-## Plan
-
-| Stage | Work | Status |
-|---|---|---|
-| 1 | Download and explore IXI T1; orientation, spacing, slice selection; subject splits | done (581 subjects) |
-| 2 | Preprocess slices; artefact simulation (k-space motion, Rician noise, blur) | done |
-| 3 | Labels: type and severity per slice; SSIM/PSNR vs. clean reference | done |
-| 4 | Classical baseline, then a multi-task CNN | done |
-| 5 | Evaluation: per-artefact and per-severity, per-site, real-artefact test (MR-ART) | done |
-| 6 | Grad-CAM, figures, write-up | done |
-
 ## Setup
 
 ```bash
 python -m venv .venv
 .venv\Scripts\activate          # Windows  (Linux/macOS: source .venv/bin/activate)
 pip install -e ".[dev]"
-# CNN stage only: GPU build of PyTorch (CUDA 11.8 wheels work on driver >= 452)
+# For the CNN only: GPU build of PyTorch (CUDA 11.8 wheels work on driver >= 452)
 pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu118
 pytest                          # runs on synthetic volumes; no download needed
 ```
 
-## Stage 1: data
+## Data exploration
 
 ```bash
 # all 581 T1 volumes (4.8 GB); add --max-subjects 50 for a quick first look
@@ -89,7 +78,7 @@ python scripts/explore_ixi.py
 plus `fig_slice_range_qc.png`, the kept slice range for 16 subjects)
 and `data/splits.json`.
 
-### Stage 1 findings
+### Findings
 
 - **Acquisition is sagittal 3D.** Every volume is stored `PSR`, with 130–150
   sagittal partitions at 1.2 mm and 256 × 256 in-plane at 0.94 mm. Axial slices
@@ -111,7 +100,7 @@ and `data/splits.json`.
 - **3 subjects are excluded** (IXI085, IXI292, IXI424): the top of the head is
   outside the field of view, so the slice range cannot be anchored.
 
-## Stages 2–3: artefacts and labels
+## Artefact simulation and labels
 
 ```bash
 python scripts/make_artefact_gallery.py      # fig_gallery.png, fig_motion_kspace.png
@@ -150,7 +139,7 @@ Masked SSIM over 578 subjects (76,296 slices incl. clean), mean [5th–95th perc
 | Noise | 0.950 [0.905–0.976] | 0.857 [0.746–0.920] | 0.669 [0.502–0.774] |
 | Motion | 0.983 [0.958–0.997] | 0.967 [0.906–0.997] | 0.821 [0.532–0.986] |
 
-### Stage 2–3 findings
+### Findings
 
 - **Motion severity is stochastic.** The damage depends on *when* in k-space
   the head moves, not only how far, so nominal motion levels overlap (L1 and L2
@@ -166,7 +155,7 @@ Masked SSIM over 578 subjects (76,296 slices incl. clean), mean [5th–95th perc
   k-space barely changes the image (SSIM ≈ 0.999), so level 1 uses two small
   moves to make it reliably visible.
 
-## Stage 4a: classical baseline
+## Classical baseline
 
 ```bash
 python scripts/baseline_classical.py --workers 10   # ~5 min; features cached in outputs/baseline/
@@ -193,7 +182,7 @@ artefact type, and severity (1 − SSIM). The same metric code
 
 Best single feature alone (one threshold, test AUROC): 0.76.
 
-### Stage 4a findings
+### Findings
 
 - **On scanners it has seen, the classical baseline nearly solves the synthetic
   task.** Hand-crafted features plus a random forest reach AUROC 0.995, while any
@@ -212,7 +201,7 @@ Best single feature alone (one threshold, test AUROC): 0.76.
   slices are correctly typed, yet only 7 % are truly degraded by the SSIM
   threshold.
 
-## Stage 4b: multi-task CNN
+## Multi-task CNN
 
 ```bash
 python scripts/pack_slices.py                       # once: all slices in one 7.6 GB memory-mapped array
@@ -255,7 +244,7 @@ are evaluated (200 random draws per *k*).
 | 5 | 0.830 ± 0.037 | **0.863 ± 0.044** | 0.991 |
 | 10 | 0.846 ± 0.021 | **0.873 ± 0.032** | 0.991 |
 
-### Stage 4b findings
+### Findings
 
 - **On scanners it has seen, the CNN is close to perfect:** type macro-F1
   0.999, and it identifies even level-1 motion (median SSIM 0.99) in 100 % of
@@ -276,7 +265,7 @@ are evaluated (200 random draws per *k*).
   learning rate fell. The final model is fine, but a lower peak rate or a longer
   warm-up would make training more predictable.
 
-## Stage 5: real motion artefacts (MR-ART)
+## Real motion artefacts (MR-ART)
 
 ```bash
 python scripts/download_mrart.py        # 4.5 GB from the public OpenNeuro bucket (ds004173, CC0)
@@ -287,8 +276,8 @@ python scripts/eval_mrart.py --workers 6
 with the same Siemens Prisma 3T MPRAGE while lying still, with slight head
 motion and with more head motion (436 scans). A neuroradiologist scored every
 scan: 1 good, 2 medium, 3 unusable. **Nothing here was seen in training:** new
-vendor, new sequence, real rather than simulated motion. Both models from
-Stage 4 (standard IXI split) are applied unchanged; scans go through exactly
+vendor, new sequence, real rather than simulated motion. Both models (trained on the
+standard IXI split) are applied unchanged; scans go through exactly
 the IXI pipeline (`prepare_scan` reproduces the stored IXI slices bit for bit),
 and slice predictions are averaged per scan.
 
@@ -320,7 +309,7 @@ directions were chosen after seeing the data, which flatters MRIQC slightly.
 | Balanced accuracy, threshold from 10 still scans | 0.791 | 0.796 |
 | Artefact scans typed as *motion* | **0 %** | **0 %** |
 
-### Stage 5 findings
+### Findings
 
 - **Ranking transfers; everything else does not.** Trained only on simulated
   artefacts, both models rank real scans by quality well (AUROC 0.89 for any
@@ -328,12 +317,12 @@ directions were chosen after seeing the data, which flatters MRIQC slightly.
   correctly 97 % of the time (CNN). That part of the simulation carried over.
 - **The CNN is not better than the classical baseline on real motion,** and
   neither beats a single standard MRIQC metric (`snr_total`). The CNN's large
-  advantage on simulated data (Stage 4) does not survive the move to real data.
+  advantage on simulated data does not survive the move to real data.
 - **The probabilities are badly miscalibrated.** At the default threshold the
   CNN flags only 6 % of artefact scans; its mean p(degraded) for *unusable*
   scans is 0.14. Setting the threshold from 3 still scans of the new scanner
   lifts balanced accuracy to 0.75, and 10 scans to 0.79: the same per-site
-  calibration step as in Stage 4, and still well short of what is needed
+  calibration step as for the unseen IXI scanner, and still well short of what is needed
   clinically.
 - **Real motion ghosts along a different axis from simulated motion.** Not one
   artefact scan is typed *motion*; when the CNN flags a real-motion slice, 92 %
@@ -351,7 +340,7 @@ directions were chosen after seeing the data, which flatters MRIQC slightly.
 
   Motion smears an image along the k-space axis that is filled *slowly* over
   time. The simulator assumed that axis was left-right (the sagittal partition
-  direction), a guess the Stage 2 notes already flagged because IXI does not
+  direction), a guess already flagged in the artefact-simulation notes because IXI does not
   publish its acquisition ordering. MR-ART's metadata gives the in-plane phase
   encoding as `ROW`, which for these sagittal slices is anterior-posterior. In an
   MPRAGE, each inversion shot typically sweeps the partitions and steps
@@ -361,7 +350,7 @@ directions were chosen after seeing the data, which flatters MRIQC slightly.
   ghosts it leaves are faint (mean background signal ~7× below level-1 simulated noise), so
   the nearest learned category is noise.
 
-## Stage 6: Grad-CAM
+## Grad-CAM
 
 ```bash
 python scripts/make_gradcam.py
@@ -385,13 +374,13 @@ to the head's area means no preference for the head):
 | IXI simulated motion | 0.55 | 0.42 |
 | MR-ART real motion (score 3) | 0.40 | 0.41 |
 
-### Stage 6 findings
+### Findings
 
 - **For blur and motion the CNN looks mainly at the head** (55–59 % of the
   evidence in the 42 % of the image the head covers), where the damage is.
 - **For noise half the evidence is in the background.** Most IXI backgrounds
   are exact zeros, so noise is easiest to see in the air around the head
-  (Stage 4a). This is a dataset shortcut; on scanners that do not zero the
+  (see *Classical baseline*). This is a dataset shortcut; on scanners that do not zero the
   background it would not work.
 - **On real motion the evidence is not focused on the head at all** (0.40 vs.
   area 0.41). In the flagged example the heat sits over streaks in front of and
@@ -412,7 +401,7 @@ to the head's area means no preference for the head):
   training scans, or mask the background before the CNN, so noise has to be
   judged from tissue.
 - **Per-site calibration is needed in any case.** A handful of good scans from
-  a new scanner set the decision threshold (Stage 4b); this could be built into
+  a new scanner set the decision threshold (see *Multi-task CNN*); this could be built into
   the tool as a set-up step.
 - **2D slices, one public dataset.** A 3D or 2.5D model would see motion
   across slices; clinical data would add pathology and other sequences.
